@@ -150,8 +150,12 @@ class StreamingService : MediaSessionService() {
 
             if (rawTitle.isNotEmpty() && rawTitle != lastLoggedRawTitle) {
                 lastLoggedRawTitle = rawTitle
-                PreferencesHelper.logTrack(this@StreamingService, rawTitle, streamName)
+
+                if (PreferencesHelper.isAutoLogEnabled(this@StreamingService)) {
+                    PreferencesHelper.logTrack(this@StreamingService, rawTitle, streamName)
+                }
             }
+
         }
     }
 

@@ -16,14 +16,14 @@ object Keys {
     const val PREF_AUDIOFOCUS_ENABLED = "audiofocus_enabled"
     const val PREF_ICON_SCALE_FACTOR = "icon_scale_factor"
 
+    const val PREF_AUTOPLAY_AND_CLOSE = "autoplay_and_close_enabled" //Autoplay
+    const val PREF_AUTOPLAY_AND_CLOSE_DELAY = "autoplay_and_clsoe_delay"
     //metaLog
     const val PREF_AUTOLOG_ENABLED = "autolog_enabled"
     const val PREF_MAX_LOG_AGE = "max_log_age"
 
     //Settings end
-    const val KEY_TRACK_LOG = "track_log" // Track log
-    const val PREF_AUTOPLAY_AND_CLOSE = "autoplay_and_close_enabled" //Autoplay
-    const val PREF_AUTOPLAY_AND_CLOSE_DELAY = "autoplay_and_clsoe_delay"
+    const val KEY_TRACK_LOG = "track_log" // Track log liste
 
-    const val PREF_LAST_PLAYED_STREAM_URL = "last_played_stream_url" //RadioService
+    const val PREF_LAST_PLAYED_STREAM_URL = "last_played_stream_url" //Letzte Gespielte URL
 }

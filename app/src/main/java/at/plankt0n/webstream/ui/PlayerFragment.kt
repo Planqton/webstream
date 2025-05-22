@@ -153,6 +153,23 @@ class PlayerFragment : Fragment() {
         binding.buttonPrev.setOnClickListener {
             mediaServiceController?.skipToPrevious()
         }
+        binding.buttonManualLog.setOnClickListener {
+            val rawTitleText = binding.textTitle.text?.toString()?.removePrefix(getString(R.string.title_prefix))?.trim()
+            val rawArtistText = binding.textArtist.text?.toString()?.removePrefix(getString(R.string.artist_prefix))?.trim()
+
+            val rawTitle = if (!rawArtistText.isNullOrEmpty()) {
+                "$rawArtistText - $rawTitleText"
+            } else {
+                rawTitleText ?: "Unknown Title"
+            }
+
+            val currentIndex = mediaServiceController?.getCurrentStreamIndex() ?: 0
+            val currentStream = PreferencesHelper.getStreams(requireContext()).getOrNull(currentIndex)
+            val streamName = currentStream?.name ?: "Unknown Stream"
+
+            PreferencesHelper.logTrack(requireContext(), rawTitle, "$streamName (Manual log)")
+        }
+
     }
 
     override fun onDestroyView() {
