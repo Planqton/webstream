@@ -129,7 +129,7 @@
     <string name="pref_auto_log_enabled_title">Auto Log Meta info</string>
     <string name="pref_auto_log_enabled_description">Automaticly logs Every Meta info change, you can later search Playes Tracks if transmitted in metainfo!</string>
     <string name="pref_max_log_age_title">Max Age</string>
-    <string name="pref_max_log_age_summary">Maximal Age of Saved Logs (Stream Logs) !!Max Size is 80000items!! Better Solution in work!</string>
+    <string name="pref_max_log_age_summary">Maximal Age (Days) of Saved Logs (Stream Logs) !!Max Size is 80000items!! Better Solution in work!</string>
     <string name="filter_time_hint">Enter Search Text (Station Name, Time, Title, Artist?)</string>
     <string name="clear_history">Delete History</string>
     <string name="manual_log">Maunal log</string>
