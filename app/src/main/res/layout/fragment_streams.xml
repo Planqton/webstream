@@ -4,18 +4,14 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- ListView für Streams -->
-    <ListView
-        android:id="@+id/streamsListView"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/streamsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:divider="@android:color/darker_gray"
-        android:dividerHeight="0.5dp"
         android:paddingTop="56dp"
         android:paddingBottom="16dp" />
 
-    <!-- Buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

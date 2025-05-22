@@ -30,7 +30,9 @@
 
 - 🔍 **Selected card in rotary menu is too small**  
   → Needs layout improvement for selected item size
-
+  - 🔄 **Rotary menu and MediaSession does not update when changing Stream Database**  
+  - Bugfix with ic_recycle when deleting a stream with swiping to the left
+  - When The Rotary Ends it takes forebver to get to the first item when klicking next
 ---
 
 ## 📦 Package Name
@@ -56,3 +58,4 @@ Some Screenshots:
 >  
 > I'm not a professional developer, so if you have any ideas, improvements, or suggestions for features,  
 > **please feel free to share or contribute** – I’d really appreciate your input!
+> There are Sampe Import Files for Radio Stations in the Repository

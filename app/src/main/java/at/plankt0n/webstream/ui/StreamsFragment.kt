@@ -1,21 +1,22 @@
-
 package at.plankt0n.webstream.ui
 
 import android.app.AlertDialog
 import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager
+import android.view.*
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.*
 import at.plankt0n.webstream.R
-import at.plankt0n.webstream.data.Stream
 import at.plankt0n.webstream.adapter.StreamAdapter
+import at.plankt0n.webstream.data.Stream
 import at.plankt0n.webstream.helper.PreferencesHelper
 import at.plankt0n.webstream.helper.UIHelper
 import at.plankt0n.webstream.helper.ToastType
@@ -25,51 +26,114 @@ import okhttp3.*
 import org.json.JSONArray
 import java.io.IOException
 import java.net.URLEncoder
+import java.util.*
 
 class StreamsFragment : Fragment() {
 
-    private lateinit var streamsListView: ListView
+    private lateinit var recyclerView: RecyclerView
     private lateinit var addButton: Button
     private lateinit var importButton: Button
-    private lateinit var streamList: ArrayList<Stream>
+    private lateinit var streamAdapter: StreamAdapter
 
     private val importFileLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        if (uri != null) {
-            importStreamsFromUri(uri)
-        } else {
-            Toast.makeText(requireContext(), getString(R.string.no_file_selected), Toast.LENGTH_SHORT).show()
-        }
+        uri?.let { importStreamsFromUri(it) }
+            ?: Toast.makeText(requireContext(), getString(R.string.no_file_selected), Toast.LENGTH_SHORT).show()
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        val binding = inflater.inflate(R.layout.fragment_streams, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        val view = inflater.inflate(R.layout.fragment_streams, container, false)
 
-        streamsListView = binding.findViewById(R.id.streamsListView)
-        addButton = binding.findViewById(R.id.addStreamButton)
-        importButton = binding.findViewById(R.id.importFromFileButton)
+        recyclerView = view.findViewById(R.id.streamsRecyclerView)
+        addButton = view.findViewById(R.id.addStreamButton)
+        importButton = view.findViewById(R.id.importFromFileButton)
 
-        streamList = ArrayList(PreferencesHelper.getStreams(requireContext()))
-        val adapter = StreamAdapter(requireContext(), streamList)
-        streamsListView.adapter = adapter
-
-        addButton.setOnClickListener {
-            showAddItemDialog(null)
+        val streamList = PreferencesHelper.getStreams(requireContext()).toMutableList()
+        streamAdapter = StreamAdapter(streamList) { stream, position ->
+            showAddItemDialog(stream, position)
         }
 
-        importButton.setOnClickListener {
-            importFileLauncher.launch("application/json")
+        recyclerView.apply {
+            adapter = streamAdapter
+            layoutManager = LinearLayoutManager(requireContext())
         }
 
-        streamsListView.setOnItemClickListener { _, _, position, _ ->
-            showAddItemDialog(streamList[position], position)
+        val dragDropHandler = object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+            0
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                val from = viewHolder.adapterPosition
+                val to = target.adapterPosition
+                streamAdapter.moveItem(from, to)
+                PreferencesHelper.saveStreams(requireContext(), streamAdapter.getItems())
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = Unit
         }
 
-        return binding
+        val swipeToDeleteHandler = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            private val deleteIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_recycle)
+            private val background = ColorDrawable(Color.RED)
+
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean = false
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                streamAdapter.removeItem(position)
+                PreferencesHelper.saveStreams(requireContext(), streamAdapter.getItems())
+            }
+
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float, dY: Float,
+                actionState: Int, isCurrentlyActive: Boolean
+            ) {
+                val itemView = viewHolder.itemView
+                background.setBounds(
+                    itemView.right + dX.toInt(),
+                    itemView.top,
+                    itemView.right,
+                    itemView.bottom
+                )
+                background.draw(c)
+
+                deleteIcon?.let {
+                    val iconMargin = (itemView.height - it.intrinsicHeight) / 2
+                    val iconTop = itemView.top + iconMargin
+                    val iconLeft = itemView.right - iconMargin - it.intrinsicWidth
+                    it.setBounds(
+                        iconLeft,
+                        iconTop,
+                        itemView.right - iconMargin,
+                        iconTop + it.intrinsicHeight
+                    )
+                    it.draw(c)
+                }
+
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+            }
+        }
+
+        ItemTouchHelper(dragDropHandler).attachToRecyclerView(recyclerView)
+        ItemTouchHelper(swipeToDeleteHandler).attachToRecyclerView(recyclerView)
+
+        addButton.setOnClickListener { showAddItemDialog(null) }
+        importButton.setOnClickListener { importFileLauncher.launch("application/json") }
+
+        return view
     }
 
     private fun showAddItemDialog(stream: Stream?, position: Int? = null) {
@@ -84,37 +148,35 @@ class StreamsFragment : Fragment() {
             streamNameEditText.setText(stream.name)
             streamUrlEditText.setText(stream.url)
             iconUrlEditText.setText(stream.iconUrl)
-            Glide.with(requireContext())
-                .load(stream.iconUrl)
-                .placeholder(R.drawable.default_station)
-                .into(iconPreview)
+            Glide.with(requireContext()).load(stream.iconUrl).placeholder(R.drawable.default_station).into(iconPreview)
         }
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .setPositiveButton(getString(R.string.save)) { _, _ ->
-                val name = streamNameEditText.text.toString()
-                val url = streamUrlEditText.text.toString()
-                val iconUrl = iconUrlEditText.text.toString()
+                val newStream = Stream(
+                    streamNameEditText.text.toString(),
+                    streamUrlEditText.text.toString(),
+                    iconUrlEditText.text.toString()
+                )
 
-                val newStream = Stream(name, url, iconUrl)
-
+                val updatedList = streamAdapter.getItems().toMutableList()
                 if (stream == null) {
-                    streamList.add(newStream)
-                } else {
-                    streamList[position!!] = newStream
+                    updatedList.add(newStream)
+                } else if (position != null) {
+                    updatedList[position] = newStream
                 }
-
-                PreferencesHelper.saveStreams(requireContext(), streamList)
-                (streamsListView.adapter as BaseAdapter).notifyDataSetChanged()
+                streamAdapter.updateAll(updatedList)
+                PreferencesHelper.saveStreams(requireContext(), updatedList)
             }
             .setNegativeButton(getString(R.string.cancel), null)
             .apply {
                 if (stream != null) {
                     setNeutralButton(getString(R.string.delete)) { _, _ ->
-                        streamList.removeAt(position!!)
-                        PreferencesHelper.saveStreams(requireContext(), streamList)
-                        (streamsListView.adapter as BaseAdapter).notifyDataSetChanged()
+                        val updatedList = streamAdapter.getItems().toMutableList()
+                        updatedList.removeAt(position!!)
+                        streamAdapter.updateAll(updatedList)
+                        PreferencesHelper.saveStreams(requireContext(), updatedList)
                     }
                 }
             }
@@ -165,7 +227,6 @@ class StreamsFragment : Fragment() {
                     progress.visibility = View.GONE
                     if (resultList.isNotEmpty()) {
                         gridView.visibility = View.VISIBLE
-
                         val adapter = object : BaseAdapter() {
                             override fun getCount() = resultList.size
                             override fun getItem(position: Int) = resultList[position]
@@ -178,7 +239,6 @@ class StreamsFragment : Fragment() {
                                 return imageView
                             }
                         }
-
                         gridView.adapter = adapter
                         gridView.setOnItemClickListener { _, _, position, _ ->
                             onSelected(resultList[position])
@@ -192,6 +252,31 @@ class StreamsFragment : Fragment() {
         }
     }
 
+    private fun searchLogoUrl(context: Context, streamName: String, onResult: (List<String>) -> Unit) {
+        val client = OkHttpClient()
+        val url = "https://de1.api.radio-browser.info/json/stations/search?name=" + URLEncoder.encode(streamName, "UTF-8")
+        val request = Request.Builder().url(url).build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) = onResult(emptyList())
+            override fun onResponse(call: Call, response: Response) {
+                response.body?.string()?.let { json ->
+                    try {
+                        val stations = JSONArray(json)
+                        val results = mutableListOf<String>()
+                        for (i in 0 until stations.length()) {
+                            val favicon = stations.getJSONObject(i).getString("favicon")
+                            if (favicon.isNotBlank()) results.add(favicon)
+                        }
+                        onResult(results)
+                    } catch (e: Exception) {
+                        onResult(emptyList())
+                    }
+                } ?: onResult(emptyList())
+            }
+        })
+    }
+
     private fun importStreamsFromUri(uri: Uri) {
         try {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
@@ -199,9 +284,19 @@ class StreamsFragment : Fragment() {
 
             if (!jsonString.isNullOrEmpty()) {
                 val importedStreams = Gson().fromJson(jsonString, Array<Stream>::class.java).toList()
-                streamList.addAll(importedStreams)
-                PreferencesHelper.saveStreams(requireContext(), streamList)
-                (streamsListView.adapter as BaseAdapter).notifyDataSetChanged()
+                val currentStreams = streamAdapter.getItems().toMutableList()
+
+                for (imported in importedStreams) {
+                    val index = currentStreams.indexOfFirst { it.name.equals(imported.name, ignoreCase = true) }
+                    if (index != -1) {
+                        currentStreams[index] = imported
+                    } else {
+                        currentStreams.add(imported)
+                    }
+                }
+
+                streamAdapter.updateAll(currentStreams)
+                PreferencesHelper.saveStreams(requireContext(), currentStreams)
                 Toast.makeText(requireContext(), getString(R.string.import_success), Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(requireContext(), getString(R.string.file_empty), Toast.LENGTH_SHORT).show()
@@ -210,38 +305,5 @@ class StreamsFragment : Fragment() {
             Toast.makeText(requireContext(), getString(R.string.import_failed) + ": ${e.message}", Toast.LENGTH_LONG).show()
             e.printStackTrace()
         }
-    }
-
-    private fun searchLogoUrl(context: Context, streamName: String, onResult: (List<String>) -> Unit) {
-        val client = OkHttpClient()
-        val url = "https://de1.api.radio-browser.info/json/stations/search?name=" + URLEncoder.encode(streamName, "UTF-8")
-        val request = Request.Builder().url(url).build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                onResult(emptyList())
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                val json = response.body?.string()
-                if (json != null) {
-                    try {
-                        val stations = JSONArray(json)
-                        val results = mutableListOf<String>()
-                        for (i in 0 until stations.length()) {
-                            val favicon = stations.getJSONObject(i).getString("favicon")
-                            if (favicon.isNotBlank()) {
-                                results.add(favicon)
-                            }
-                        }
-                        onResult(results)
-                    } catch (e: Exception) {
-                        onResult(emptyList())
-                    }
-                } else {
-                    onResult(emptyList())
-                }
-            }
-        })
     }
 }

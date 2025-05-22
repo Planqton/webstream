@@ -1,48 +1,66 @@
 package at.plankt0n.webstream.adapter
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
 import at.plankt0n.webstream.R
 import at.plankt0n.webstream.data.Stream
 import com.bumptech.glide.Glide
 
-class StreamAdapter(context: Context, private val streams: ArrayList<Stream>) : BaseAdapter() {
+class StreamAdapter(
+    private val streams: MutableList<Stream>,
+    private val onItemClick: (Stream, Int) -> Unit
+) : RecyclerView.Adapter<StreamAdapter.ViewHolder>() {
 
-    private val inflater: LayoutInflater = LayoutInflater.from(context)
+    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val icon: ImageView = view.findViewById(R.id.streamIcon)
+        val name: TextView = view.findViewById(R.id.streamName)
+        val url: TextView = view.findViewById(R.id.streamURL)
 
-    override fun getCount(): Int = streams.size
-
-    override fun getItem(position: Int): Any = streams[position]
-
-    override fun getItemId(position: Int): Long = position.toLong()
-
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val view = convertView ?: inflater.inflate(R.layout.list_item_stream, parent, false)
-
-        val stream = getItem(position) as Stream
-
-        val nameTextView: TextView = view.findViewById(R.id.streamName)
-        val urlTextView: TextView = view.findViewById(R.id.streamURL)
-        val imageView: ImageView = view.findViewById(R.id.streamIcon)
-
-        nameTextView.text = stream.name
-        urlTextView.text = stream.url
-
-        // Lade das Icon, wenn verfügbar, andernfalls benutze das Standard-Icon
-        if (stream.iconUrl.isNotEmpty()) {
-            Glide.with(view.context)
-                .load(stream.iconUrl)  // Lade das Bild von der URL
-                .placeholder(R.drawable.default_icon)  // Zeige das Standardbild, wenn das Bild nicht geladen werden kann
-                .error(R.drawable.default_icon)  // Zeige das Standardbild bei Fehlern
-                .into(imageView)
-        } else {
-            // Lade das Standard-Icon, wenn keine URL angegeben ist
-            imageView.setImageResource(R.drawable.default_icon)
+        init {
+            view.setOnClickListener {
+                onItemClick(streams[adapterPosition], adapterPosition)
+            }
         }
-
-        return view
     }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.list_item_stream, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun getItemCount(): Int = streams.size
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val stream = streams[position]
+        holder.name.text = stream.name
+        holder.url.text = stream.url
+        Glide.with(holder.icon.context)
+            .load(stream.iconUrl)
+            .placeholder(R.drawable.default_icon)
+            .into(holder.icon)
+    }
+
+    fun removeItem(position: Int) {
+        streams.removeAt(position)
+        notifyItemRemoved(position)
+    }
+
+    fun moveItem(from: Int, to: Int) {
+        val stream = streams.removeAt(from)
+        streams.add(to, stream)
+        notifyItemMoved(from, to)
+    }
+
+    fun updateAll(newStreams: List<Stream>) {
+        streams.clear()
+        streams.addAll(newStreams)
+        notifyDataSetChanged()
+    }
+
+    fun getItems(): List<Stream> = streams
 }
