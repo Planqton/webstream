@@ -131,6 +131,8 @@
     <string name="pref_max_log_age_title">Max Age</string>
     <string name="pref_max_log_age_summary">Maximal Age of Saved Logs (Stream Logs) !!Max Size is 80000items!! Better Solution in work!</string>
     <string name="filter_time_hint">Enter Search Text (Station Name, Time, Title, Artist?)</string>
-    <string name="clear_history">Verlauf löschen</string>
+    <string name="clear_history">Delete History</string>
+    <string name="manual_log">Maunal log</string>
+
 
 </resources>
