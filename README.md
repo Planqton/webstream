@@ -39,6 +39,16 @@
 
 ---
 
+## Preview
+
+So sieht die App im Betrieb aus:
+
+![Player](screenshots/Screenshot_20250522_160915.png)
+![Streams](screenshots/Screenshot_20250522_161110.png)
+![Title Logs](screenshots/Screenshot_20250522_161126.png)
+
+---
+
 ## 🙌 Note
 
 > Most of the work has been done with the help of **ChatGPT**.  
