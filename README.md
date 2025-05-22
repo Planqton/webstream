@@ -41,7 +41,7 @@
 
 ## Preview
 
-So sieht die App im Betrieb aus:
+Some Screenshots:
 
 ![Player](screenshots/Screenshot_20250522_160915.png)
 ![Streams](screenshots/Screenshot_20250522_161110.png)
