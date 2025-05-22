@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Wildstyle",
+    "url": "https://play.smolyakov.dev/stream/vc/espant",
+    "iconUrl": "https://gtaradio.net/vc/images/stations/wildstyle.png"
+  },
+  {
+    "name": "Flash FM",
+    "url": "https://play.smolyakov.dev/stream/vc/flash",
+    "iconUrl": "https://gtaradio.net/vc/images/stations/flash.png"
+  },
+  {
+    "name": "Fever 105",
+    "url": "https://play.smolyakov.dev/stream/vc/fever",
+    "iconUrl": "https://gtaradio.net/vc/images/stations/fever.png"
+  },
+  {
+    "name": "V-Rock",
+    "url": "https://play.smolyakov.dev/stream/vc/vrock",
+    "iconUrl": "https://gtaradio.net/vc/images/stations/vrock.png"
+  },
+  {
+    "name": "Radio Espantoso",
+    "url": "https://play.smolyakov.dev/stream/vc/wild",
+    "iconUrl": "https://gtaradio.net/vc/images/stations/espantoso.png"
+  },
+  {
+    "name": "Emotion 98.3",
+    "url": "https://play.smolyakov.dev/stream/vc/emotion",
+    "iconUrl": "https://gtaradio.net/vc/images/stations/emotion.png"
+  },
+  {
+    "name": "Wave 103",
+    "url": "https://play.smolyakov.dev/stream/vc/wave",
+    "iconUrl": "https://gtaradio.net/vc/images/stations/wave.png"
+  },
+  {
+    "name": "K-Chat",
+    "url": "https://play.smolyakov.dev/stream/vc/kchat",
+    "iconUrl": "https://gtaradio.net/vc/images/stations/kchat.png"
+  },
+  {
+    "name": "VCPR",
+    "url": "https://play.smolyakov.dev/stream/vc/vcpr",
+    "iconUrl": "https://gtaradio.net/vc/images/stations/vcpr.png"
+  }
+]

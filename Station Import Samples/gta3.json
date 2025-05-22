@@ -1,0 +1,47 @@
+[
+  {
+    "name": "MSX FM",
+    "url": "https://play.smolyakov.dev/stream/3/msx",
+    "iconUrl": "https://gtaradio.net/3/images/stations/msx.png"
+  },
+  {
+    "name": "Chatterbox FM",
+    "url": "https://play.smolyakov.dev/stream/3/chat",
+    "iconUrl": "https://gtaradio.net/3/images/stations/chat.png"
+  },
+  {
+    "name": "Flashback 95.6",
+    "url": "https://play.smolyakov.dev/stream/3/flash",
+    "iconUrl": "https://gtaradio.net/3/images/stations/flash.png"
+  },
+  {
+    "name": "Game Radio FM",
+    "url": "https://play.smolyakov.dev/stream/3/game",
+    "iconUrl": "https://gtaradio.net/3/images/stations/game.png"
+  },
+  {
+    "name": "Lips 106",
+    "url": "https://play.smolyakov.dev/stream/3/lips",
+    "iconUrl": "https://gtaradio.net/3/images/stations/lips.png"
+  },
+  {
+    "name": "Rise FM",
+    "url": "https://play.smolyakov.dev/stream/3/rise",
+    "iconUrl": "https://gtaradio.net/3/images/stations/rise.png"
+  },
+  {
+    "name": "K-JAH",
+    "url": "https://play.smolyakov.dev/stream/3/kjah",
+    "iconUrl": "https://gtaradio.net/3/images/stations/kjah.png"
+  },
+  {
+    "name": "Head Radio",
+    "url": "https://play.smolyakov.dev/stream/3/head",
+    "iconUrl": "https://gtaradio.net/3/images/stations/head.png"
+  },
+  {
+    "name": "Double Clef FM",
+    "url": "https://play.smolyakov.dev/stream/3/class",
+    "iconUrl": "https://gtaradio.net/3/images/stations/class.png"
+  }
+]

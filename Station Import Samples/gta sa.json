@@ -1,0 +1,57 @@
+[
+  {
+    "name": "SF-UR",
+    "url": "https://play.smolyakov.dev/stream/sa/sfur",
+    "iconUrl": "https://gtaradio.net/sa/images/stations/sfur.png"
+  },
+  {
+    "name": "WCTR",
+    "url": "https://play.smolyakov.dev/stream/sa/wctr",
+    "iconUrl": "https://gtaradio.net/sa/images/stations/wctr.png"
+  },
+  {
+    "name": "Radio X",
+    "url": "https://play.smolyakov.dev/stream/sa/radio-x",
+    "iconUrl": "https://gtaradio.net/sa/images/stations/radio-x.png"
+  },
+  {
+    "name": "Radio Los Santos",
+    "url": "https://play.smolyakov.dev/stream/sa/radio-los-santos",
+    "iconUrl": "https://gtaradio.net/sa/images/stations/radio-los-santos.png"
+  },
+  {
+    "name": "Playback FM",
+    "url": "https://play.smolyakov.dev/stream/sa/playback-fm",
+    "iconUrl": "https://gtaradio.net/sa/images/stations/playback-fm.png"
+  },
+  {
+    "name": "Master Sounds 98.3",
+    "url": "https://play.smolyakov.dev/stream/sa/master-sounds",
+    "iconUrl": "https://gtaradio.net/sa/images/stations/master-sounds.png"
+  },
+  {
+    "name": "K-Rose",
+    "url": "https://play.smolyakov.dev/stream/sa/k-rose",
+    "iconUrl": "https://gtaradio.net/sa/images/stations/k-rose.png"
+  },
+  {
+    "name": "K-JAH West",
+    "url": "https://play.smolyakov.dev/stream/sa/k-jah",
+    "iconUrl": "https://gtaradio.net/sa/images/stations/k-jah.png"
+  },
+  {
+    "name": "K-DST",
+    "url": "https://play.smolyakov.dev/stream/sa/k-dst",
+    "iconUrl": "https://gtaradio.net/sa/images/stations/k-dst.png"
+  },
+  {
+    "name": "CSR 103.9",
+    "url": "https://play.smolyakov.dev/stream/sa/csr",
+    "iconUrl": "https://gtaradio.net/sa/images/stations/csr.png"
+  },
+  {
+    "name": "Bounce FM",
+    "url": "https://play.smolyakov.dev/stream/sa/bounce-fm",
+    "iconUrl": "https://gtaradio.net/sa/images/stations/bounce-fm.png"
+  }
+]
