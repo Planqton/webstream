@@ -132,25 +132,48 @@ class PlayerFragment : Fragment() {
                 }
             },
             onTimelineChanged = { reason ->
-                // nur bei Grund: PLAYLIST_CHANGED
                 if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
-                    val updatedStreams = PreferencesHelper.getStreams(requireContext())
+                    val updatedStreams = mediaServiceController?.getCurrentPlaylist().orEmpty()
                     val currentIndex = mediaServiceController?.getCurrentStreamIndex() ?: 0
 
-                    // Adapter neu setzen
                     val newAdapter = StreamCoverCardAdapter(requireContext(), updatedStreams)
                     binding.recyclerViewCoverFlow.adapter = newAdapter
 
-                    // Auf aktuellen Index zentrieren
-                    isProgrammaticScroll = true
                     binding.recyclerViewCoverFlow.post {
-                        binding.recyclerViewCoverFlow.smoothScrollToPosition(currentIndex)
+                        val viewHolder =
+                            binding.recyclerViewCoverFlow.findViewHolderForAdapterPosition(0)
+                                ?: binding.recyclerViewCoverFlow.getChildAt(0)?.let {
+                                    binding.recyclerViewCoverFlow.getChildViewHolder(it)
+                                }
+
+                        val itemWidth = viewHolder?.itemView?.width ?: 0
+                        if (itemWidth > 0) {
+                            val recyclerWidth = binding.recyclerViewCoverFlow.width
+                            val sidePadding = (recyclerWidth - itemWidth) / 2
+                            binding.recyclerViewCoverFlow.setPadding(sidePadding, 0, sidePadding, 0)
+                            binding.recyclerViewCoverFlow.clipToPadding = false
+                        }
+
+                        isProgrammaticScroll = true
+                        binding.recyclerViewCoverFlow.post {
+                            binding.recyclerViewCoverFlow.scrollToPosition(currentIndex)
+
+                            // 🔥 SnapHelper manuell triggern!
+                            val layoutManager = binding.recyclerViewCoverFlow.layoutManager as LinearLayoutManager
+                            val viewToSnap = snapHelper.findSnapView(layoutManager)
+                            if (viewToSnap != null) {
+                                val snapDistance = snapHelper.calculateDistanceToFinalSnap(layoutManager, viewToSnap)
+                                if (snapDistance != null) {
+                                    binding.recyclerViewCoverFlow.scrollBy(snapDistance[0], snapDistance[1])
+                                }
+                            }
+                        }
                     }
 
-                    // Log für Debugging
-                    Log.d("PlayerFragment", "✅ Playlist neu geladen & Rotary-Ansicht zentriert!")
+                    Log.d("PlayerFragment", "✅ Playlist neu geladen & SnapHelper korrekt getriggert!")
                 }
-            },
+            }
+            ,
             onMetadataChanged = { rawTitle ->
                 val nowPlayingPrefix = getString(R.string.now_playing_prefix)
                 val titlePrefix = getString(R.string.title_prefix)

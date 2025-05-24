@@ -135,7 +135,7 @@ class MediaServiceController(private val context: Context) {
             val metadata: MediaMetadata = mediaItem.mediaMetadata
             val extras = metadata.extras
 
-            val name = metadata.title?.toString() ?: "Unnamed"
+            val name = metadata.artist?.toString() ?: "Unnamed"
             val url = mediaItem.localConfiguration?.uri?.toString() ?: ""
             val iconUrl = extras?.getString("EXTRA_ICON_URL") ?: ""
 
