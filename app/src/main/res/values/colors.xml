@@ -13,5 +13,6 @@
     <color name="darker_aqua_dudu">#2b2180</color>
     <color name="green">#4CAF50</color>
     <color name="red">#F44336</color>
+    <color name="drag_highlight">#FFDDDDDD</color>
 
 </resources>

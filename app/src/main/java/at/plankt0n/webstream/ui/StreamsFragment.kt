@@ -77,6 +77,20 @@ class StreamsFragment : Fragment() {
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = Unit
+
+            // Highlight beim Drag starten
+            override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+                super.onSelectedChanged(viewHolder, actionState)
+                if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
+                    viewHolder?.itemView?.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.drag_highlight))
+                }
+            }
+
+            // Hintergrund zurücksetzen
+            override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+                super.clearView(recyclerView, viewHolder)
+                viewHolder.itemView.setBackgroundColor(Color.TRANSPARENT)
+            }
         }
 
         val swipeToDeleteHandler = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
@@ -125,7 +139,6 @@ class StreamsFragment : Fragment() {
                 action = "at.plankt0n.webstream.action.REFRESH_PLAYLIST"
             }
             requireContext().startService(intent)
-
         }
 
         return view
