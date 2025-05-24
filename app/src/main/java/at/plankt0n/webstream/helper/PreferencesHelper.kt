@@ -105,6 +105,20 @@ object PreferencesHelper {
             .getString(Keys.PREF_LAST_PLAYED_STREAM_URL, null)
     }
 
+    // Letzten abgespielten Stream-Index speichern
+    fun saveLastPlayedStreamIndex(context: Context, index: Int) {
+        PreferenceManager.getDefaultSharedPreferences(context).edit()
+            .putInt(Keys.PREF_LAST_PLAYED_STREAM_INDEX, index)
+            .apply()
+    }
+
+    // Letzten abgespielten Stream-Index abrufen
+    fun getLastPlayedStreamIndex(context: Context): Int {
+        return PreferenceManager.getDefaultSharedPreferences(context)
+            .getInt(Keys.PREF_LAST_PLAYED_STREAM_INDEX, 0) // 0 als Fallback
+    }
+
+
     fun isAutoplayAndCloseEnabled(context: Context): Boolean {
         return PreferenceManager.getDefaultSharedPreferences(context)
             .getBoolean(Keys.PREF_AUTOPLAY_AND_CLOSE, false)

@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.media3.common.Player
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -36,16 +37,13 @@ class PlayerFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val context = requireContext()
-        val streams = PreferencesHelper.getStreams(context)
 
         binding.textTitle.text = getString(R.string.now_playing_prefix) + "–"
         binding.textArtist.text = ""
 
-        val adapter = StreamCoverCardAdapter(context, streams)
         val layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
 
         binding.recyclerViewCoverFlow.layoutManager = layoutManager
-        binding.recyclerViewCoverFlow.adapter = adapter
         binding.recyclerViewCoverFlow.setHasFixedSize(true)
         binding.recyclerViewCoverFlow.clipToPadding = false
         binding.recyclerViewCoverFlow.clipChildren = false
@@ -57,20 +55,7 @@ class PlayerFragment : Fragment() {
         snapHelper = LinearSnapHelper()
         snapHelper.attachToRecyclerView(binding.recyclerViewCoverFlow)
 
-        binding.recyclerViewCoverFlow.post {
-            val viewHolder = binding.recyclerViewCoverFlow.findViewHolderForAdapterPosition(0)
-            val itemWidth = viewHolder?.itemView?.width
-                ?: binding.recyclerViewCoverFlow.getChildAt(0)?.width
-                ?: 0
-
-            if (itemWidth > 0) {
-                val recyclerWidth = binding.recyclerViewCoverFlow.width
-                val sidePadding = (recyclerWidth - itemWidth) / 2
-                binding.recyclerViewCoverFlow.setPadding(sidePadding, 0, sidePadding, 0)
-                binding.recyclerViewCoverFlow.clipToPadding = false
-            }
-        }
-
+        // OnScrollListener für MediaService-Index-Synchronisierung
         binding.recyclerViewCoverFlow.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
@@ -87,9 +72,31 @@ class PlayerFragment : Fragment() {
             }
         })
 
+        // MediaServiceController initialisieren und verbinden
         mediaServiceController = MediaServiceController(context)
         mediaServiceController?.initializeAndConnect(
             onConnected = { controller ->
+                val displayStreams = mediaServiceController?.getCurrentPlaylist().orEmpty()
+                val adapter = StreamCoverCardAdapter(context, displayStreams)
+                binding.recyclerViewCoverFlow.adapter = adapter
+
+                // Padding erst nach Adapter setzen (korrektes ItemWidth!)
+                binding.recyclerViewCoverFlow.post {
+                    val viewHolder =
+                        binding.recyclerViewCoverFlow.findViewHolderForAdapterPosition(0)
+                    val itemWidth = viewHolder?.itemView?.width
+                        ?: binding.recyclerViewCoverFlow.getChildAt(0)?.width
+                        ?: 0
+
+                    if (itemWidth > 0) {
+                        val recyclerWidth = binding.recyclerViewCoverFlow.width
+                        val sidePadding = (recyclerWidth - itemWidth) / 2
+                        binding.recyclerViewCoverFlow.setPadding(sidePadding, 0, sidePadding, 0)
+                        binding.recyclerViewCoverFlow.clipToPadding = false
+                    }
+                }
+
+                // Aktuellen Index in der Liste zentriert darstellen
                 val currentIndex = controller.currentMediaItemIndex
                 if (currentIndex >= 0) {
                     isProgrammaticScroll = true
@@ -98,6 +105,7 @@ class PlayerFragment : Fragment() {
                     }
                 }
 
+                // Autoplay + automatisches Minimieren
                 val delaySeconds = PreferencesHelper.getAutoplayandCloseDelay(requireContext())
                 val delayMillis = delaySeconds * 1000L
 
@@ -123,9 +131,27 @@ class PlayerFragment : Fragment() {
                     binding.recyclerViewCoverFlow.smoothScrollToPosition(index)
                 }
             },
+            onTimelineChanged = { reason ->
+                // nur bei Grund: PLAYLIST_CHANGED
+                if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
+                    val updatedStreams = PreferencesHelper.getStreams(requireContext())
+                    val currentIndex = mediaServiceController?.getCurrentStreamIndex() ?: 0
+
+                    // Adapter neu setzen
+                    val newAdapter = StreamCoverCardAdapter(requireContext(), updatedStreams)
+                    binding.recyclerViewCoverFlow.adapter = newAdapter
+
+                    // Auf aktuellen Index zentrieren
+                    isProgrammaticScroll = true
+                    binding.recyclerViewCoverFlow.post {
+                        binding.recyclerViewCoverFlow.smoothScrollToPosition(currentIndex)
+                    }
+
+                    // Log für Debugging
+                    Log.d("PlayerFragment", "✅ Playlist neu geladen & Rotary-Ansicht zentriert!")
+                }
+            },
             onMetadataChanged = { rawTitle ->
-
-
                 val nowPlayingPrefix = getString(R.string.now_playing_prefix)
                 val titlePrefix = getString(R.string.title_prefix)
                 val artistPrefix = getString(R.string.artist_prefix)
@@ -154,8 +180,12 @@ class PlayerFragment : Fragment() {
             mediaServiceController?.skipToPrevious()
         }
         binding.buttonManualLog.setOnClickListener {
-            val rawTitleText = binding.textTitle.text?.toString()?.removePrefix(getString(R.string.title_prefix))?.trim()
-            val rawArtistText = binding.textArtist.text?.toString()?.removePrefix(getString(R.string.artist_prefix))?.trim()
+            val rawTitleText =
+                binding.textTitle.text?.toString()?.removePrefix(getString(R.string.title_prefix))
+                    ?.trim()
+            val rawArtistText =
+                binding.textArtist.text?.toString()?.removePrefix(getString(R.string.artist_prefix))
+                    ?.trim()
 
             val rawTitle = if (!rawArtistText.isNullOrEmpty()) {
                 "$rawArtistText - $rawTitleText"
@@ -164,12 +194,12 @@ class PlayerFragment : Fragment() {
             }
 
             val currentIndex = mediaServiceController?.getCurrentStreamIndex() ?: 0
-            val currentStream = PreferencesHelper.getStreams(requireContext()).getOrNull(currentIndex)
+            val currentStream =
+                PreferencesHelper.getStreams(requireContext()).getOrNull(currentIndex)
             val streamName = currentStream?.name ?: "Unknown Stream"
 
             PreferencesHelper.logTrack(requireContext(), rawTitle, "$streamName (Manual log)")
         }
-
     }
 
     override fun onDestroyView() {

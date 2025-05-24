@@ -25,5 +25,7 @@ object Keys {
     //Settings end
     const val KEY_TRACK_LOG = "track_log" // Track log liste
 
-    const val PREF_LAST_PLAYED_STREAM_URL = "last_played_stream_url" //Letzte Gespielte URL
+    const val PREF_LAST_PLAYED_STREAM_URL = "last_played_stream_url" //Letzte Gespielte URL (veraltet)
+    const val PREF_LAST_PLAYED_STREAM_INDEX = "last_played_stream_index" //Letzte Gespielte Index
+
 }

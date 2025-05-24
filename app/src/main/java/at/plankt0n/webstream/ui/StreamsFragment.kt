@@ -2,6 +2,7 @@ package at.plankt0n.webstream.ui
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -15,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.*
 import at.plankt0n.webstream.R
+import at.plankt0n.webstream.StreamingService
 import at.plankt0n.webstream.adapter.StreamAdapter
 import at.plankt0n.webstream.data.Stream
 import at.plankt0n.webstream.helper.PreferencesHelper
@@ -26,13 +28,13 @@ import okhttp3.*
 import org.json.JSONArray
 import java.io.IOException
 import java.net.URLEncoder
-import java.util.*
 
 class StreamsFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var addButton: Button
     private lateinit var importButton: Button
+    private lateinit var saveButton: Button
     private lateinit var streamAdapter: StreamAdapter
 
     private val importFileLauncher = registerForActivityResult(
@@ -48,6 +50,7 @@ class StreamsFragment : Fragment() {
         recyclerView = view.findViewById(R.id.streamsRecyclerView)
         addButton = view.findViewById(R.id.addStreamButton)
         importButton = view.findViewById(R.id.importFromFileButton)
+        saveButton = view.findViewById(R.id.saveButton)
 
         val streamList = PreferencesHelper.getStreams(requireContext()).toMutableList()
         streamAdapter = StreamAdapter(streamList) { stream, position ->
@@ -60,8 +63,7 @@ class StreamsFragment : Fragment() {
         }
 
         val dragDropHandler = object : ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
-            0
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
         ) {
             override fun onMove(
                 recyclerView: RecyclerView,
@@ -71,7 +73,6 @@ class StreamsFragment : Fragment() {
                 val from = viewHolder.adapterPosition
                 val to = target.adapterPosition
                 streamAdapter.moveItem(from, to)
-                PreferencesHelper.saveStreams(requireContext(), streamAdapter.getItems())
                 return true
             }
 
@@ -82,44 +83,26 @@ class StreamsFragment : Fragment() {
             private val deleteIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_recycle)
             private val background = ColorDrawable(Color.RED)
 
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean = false
+            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
                 streamAdapter.removeItem(position)
-                PreferencesHelper.saveStreams(requireContext(), streamAdapter.getItems())
             }
 
             override fun onChildDraw(
-                c: Canvas,
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                dX: Float, dY: Float,
-                actionState: Int, isCurrentlyActive: Boolean
+                c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
+                dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean
             ) {
                 val itemView = viewHolder.itemView
-                background.setBounds(
-                    itemView.right + dX.toInt(),
-                    itemView.top,
-                    itemView.right,
-                    itemView.bottom
-                )
+                background.setBounds(itemView.right + dX.toInt(), itemView.top, itemView.right, itemView.bottom)
                 background.draw(c)
 
                 deleteIcon?.let {
                     val iconMargin = (itemView.height - it.intrinsicHeight) / 2
                     val iconTop = itemView.top + iconMargin
                     val iconLeft = itemView.right - iconMargin - it.intrinsicWidth
-                    it.setBounds(
-                        iconLeft,
-                        iconTop,
-                        itemView.right - iconMargin,
-                        iconTop + it.intrinsicHeight
-                    )
+                    it.setBounds(iconLeft, iconTop, itemView.right - iconMargin, iconTop + it.intrinsicHeight)
                     it.draw(c)
                 }
 
@@ -132,6 +115,18 @@ class StreamsFragment : Fragment() {
 
         addButton.setOnClickListener { showAddItemDialog(null) }
         importButton.setOnClickListener { importFileLauncher.launch("application/json") }
+
+        saveButton.setOnClickListener {
+            val updatedStreams = streamAdapter.getItems()
+            PreferencesHelper.saveStreams(requireContext(), updatedStreams)
+            Toast.makeText(requireContext(), getString(R.string.saved_successfully), Toast.LENGTH_SHORT).show()
+            // Service-Intent senden, um refreshPlaylist() auszulösen
+            val intent = Intent(requireContext(), StreamingService::class.java).apply {
+                action = "at.plankt0n.webstream.action.REFRESH_PLAYLIST"
+            }
+            requireContext().startService(intent)
+
+        }
 
         return view
     }
@@ -167,7 +162,6 @@ class StreamsFragment : Fragment() {
                     updatedList[position] = newStream
                 }
                 streamAdapter.updateAll(updatedList)
-                PreferencesHelper.saveStreams(requireContext(), updatedList)
             }
             .setNegativeButton(getString(R.string.cancel), null)
             .apply {
@@ -176,7 +170,6 @@ class StreamsFragment : Fragment() {
                         val updatedList = streamAdapter.getItems().toMutableList()
                         updatedList.removeAt(position!!)
                         streamAdapter.updateAll(updatedList)
-                        PreferencesHelper.saveStreams(requireContext(), updatedList)
                     }
                 }
             }

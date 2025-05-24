@@ -12,9 +12,11 @@ import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import at.plankt0n.webstream.StreamingService
+import at.plankt0n.webstream.data.Stream
 
 class MediaServiceController(private val context: Context) {
 
@@ -29,7 +31,8 @@ class MediaServiceController(private val context: Context) {
         onConnected: (MediaController) -> Unit,
         onPlaybackChanged: (Boolean) -> Unit,
         onStreamIndexChanged: (Int) -> Unit,
-        onMetadataChanged: (String) -> Unit
+        onMetadataChanged: (String) -> Unit,
+        onTimelineChanged: (Int) -> Unit
     ) {
         val serviceIntent = Intent(context, StreamingService::class.java)
         context.startForegroundService(serviceIntent)
@@ -58,6 +61,12 @@ class MediaServiceController(private val context: Context) {
                         }, 100)
                     }
 
+                    override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+                        Log.d("MediaServiceController", "🔁 Timeline geändert! Grund: $reason")
+                        onTimelineChanged(reason)
+                    }
+
+
                     override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
                         val title = mediaMetadata.title?.toString()
                         title?.let {
@@ -75,6 +84,8 @@ class MediaServiceController(private val context: Context) {
         }, context.mainExecutor)
     }
 
+
+    //shows a log with all items in the media session and the rotary streams
     private fun logRotaryAndMediaSessionStreams(controller: MediaController) {
         val rotaryStreams = PreferencesHelper.getStreams(context)
 
@@ -113,6 +124,30 @@ class MediaServiceController(private val context: Context) {
         }
     }
 
+    fun getCurrentPlaylist(): List<Stream> {
+        val controller = mediaController ?: return emptyList()
+
+        val itemCount = controller.mediaItemCount
+        val streams = mutableListOf<Stream>()
+
+        for (i in 0 until itemCount) {
+            val mediaItem = controller.getMediaItemAt(i)
+            val metadata: MediaMetadata = mediaItem.mediaMetadata
+            val extras = metadata.extras
+
+            val name = metadata.title?.toString() ?: "Unnamed"
+            val url = mediaItem.localConfiguration?.uri?.toString() ?: ""
+            val iconUrl = extras?.getString("EXTRA_ICON_URL") ?: ""
+
+            streams.add(Stream(name = name, url = url, iconUrl = iconUrl))
+        }
+
+        return streams
+    }
+
+
+
+
     fun seekToIndex(index: Int) {
         val controller = mediaController ?: return
         if (index in 0 until controller.mediaItemCount) {
@@ -127,11 +162,14 @@ class MediaServiceController(private val context: Context) {
 
     fun skipToNext() {
         mediaController?.seekToNextMediaItem()
+        Log.d("MediaServiceController", ">>>>>")
     }
 
     fun skipToPrevious() {
         mediaController?.seekToPreviousMediaItem()
+        Log.d("MediaServiceController", "<<<<<<")
     }
+
 
     fun togglePlayPause() {
         val controller = mediaController ?: return
