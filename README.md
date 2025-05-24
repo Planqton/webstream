@@ -13,13 +13,12 @@
 - 🕵️ **Track history** – enables searching for songs later (if station provides metadata)
 - 🧭 **Clean and simple UI** for managing and playing streams
 - 🔊 **AudioFocus support** – pause other media apps when stream starts (optional)
-
+- 🔄 **Import / Export** station list (e.g. as JSON) Drag Drop move Stream to Change Index, Swipe to left to delete on fly
 ---
 
 ## 🔜 Planned Features
 
-- ⚡ **Shortcut overlay** for quick access to favorite stations
-- 🔄 **Import / Export** station list (e.g. as JSON)
+-  ⚡ **Shortcut overlay** for quick access to favorite stations
 - 🚀 **Autostart after boot** (optional)
 - 🖼️ **MediaSession artwork support** – show stream cover in system player
 - 🧩 **Better dynamic layouts** – responsive design for various screen sizes

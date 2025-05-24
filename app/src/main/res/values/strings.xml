@@ -83,6 +83,11 @@
     <string name="add_stream">Add Stream</string>
     <string name="import_streams">Import from File</string>
     <string name="save_streams">Save Streams</string>
+    <string name="export_streams">Export Streams</string>
+    <string name="export_success">Export Succesfull</string>
+    <string name="export_failed">Export Error</string>
+    <string name="no_streams_found">No streams found</string>
+
     <string name="saved_successfully">Saved Successfully</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>

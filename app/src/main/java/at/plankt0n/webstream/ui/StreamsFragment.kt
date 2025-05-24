@@ -34,6 +34,7 @@ class StreamsFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var addButton: Button
     private lateinit var importButton: Button
+    private lateinit var exportButton: Button
     private lateinit var saveButton: Button
     private lateinit var streamAdapter: StreamAdapter
 
@@ -51,6 +52,7 @@ class StreamsFragment : Fragment() {
         addButton = view.findViewById(R.id.addStreamButton)
         importButton = view.findViewById(R.id.importFromFileButton)
         saveButton = view.findViewById(R.id.saveButton)
+        exportButton = view.findViewById(R.id.exportButton)
 
         val streamList = PreferencesHelper.getStreams(requireContext()).toMutableList()
         streamAdapter = StreamAdapter(streamList) { stream, position ->
@@ -129,7 +131,11 @@ class StreamsFragment : Fragment() {
 
         addButton.setOnClickListener { showAddItemDialog(null) }
         importButton.setOnClickListener { importFileLauncher.launch("application/json") }
-
+        exportButton.setOnClickListener {
+            val timestamp = System.currentTimeMillis()
+            val fileName = "webstream_export_$timestamp.json"
+            createFileLauncher.launch(fileName)
+        }
         saveButton.setOnClickListener {
             val updatedStreams = streamAdapter.getItems()
             PreferencesHelper.saveStreams(requireContext(), updatedStreams)
@@ -282,6 +288,43 @@ class StreamsFragment : Fragment() {
             }
         })
     }
+
+    private val createFileLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        uri?.let { exportStreamsToJsonSaf(it) }
+            ?: Toast.makeText(requireContext(), "Export abgebrochen", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun exportStreamsToJsonSaf(uri: Uri) {
+        try {
+            val streams = PreferencesHelper.getStreams(requireContext())
+            if (streams.isEmpty()) {
+                Toast.makeText(requireContext(), getString(R.string.no_streams_found), Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val jsonString = Gson().toJson(streams)
+            requireContext().contentResolver.openOutputStream(uri)?.use { outputStream ->
+                outputStream.write(jsonString.toByteArray())
+            }
+
+            Toast.makeText(requireContext(), "Export erfolgreich!", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Export fehlgeschlagen: ${e.message}", Toast.LENGTH_LONG).show()
+            e.printStackTrace()
+        }
+    }
+    private fun checkStoragePermissions() {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+
+                requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 123)
+            }
+        }
+    }
+
 
     private fun importStreamsFromUri(uri: Uri) {
         try {
