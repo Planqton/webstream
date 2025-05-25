@@ -41,6 +41,10 @@
     <!-- AudioFocus -->
     <string name="pref_autoplay_player_enabled_title">Autoplays when UI Player Starts</string>
     <string name="pref_autoplay_player_description">Starts the Streaming after Launch the UI Player</string>
+    <!-- Open Girhub -->
+    <string name="pref_open_github_repo_title">GitHub Repository</string>
+    <string name="pref_open_github_repo_summary">Opens the Github Repository</string>
+    <string name="github_repository_url">https://github.com/Planqton/webstream</string>
 
     <!-- Overwrite Label -->
     <string name="pref_overwrite_label_title">Overwrite label</string>

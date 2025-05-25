@@ -195,6 +195,20 @@ class SettingsFragment : PreferenceFragmentCompat() {
             icon = ContextCompat.getDrawable(context, R.drawable.ic_toast)
         }
 
+        val preferenceOpenGithubRepo = Preference(context).apply {
+            key = "pref_open_github_repo"
+            title = getString(R.string.pref_open_github_repo_title)
+            summary = getString(R.string.pref_open_github_repo_summary)
+            icon = ContextCompat.getDrawable(context, R.drawable.ic_github)
+            setOnPreferenceClickListener {
+                val url = getString(R.string.github_repository_url)
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                context.startActivity(intent)
+                true
+            }
+        }
+
+
         val preferenceShowErrorToast = SwitchPreferenceCompat(context).apply { //Error Toasts
             key = Keys.PREF_SHOW_ERROR_TOAST
             title = getString(R.string.pref_error_toast_enabled_title)
@@ -241,8 +255,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
         //screen.addPreference(preferenceShowReconnectingToast)
         //screen.addPreference(preferenceShowBufferingToast)
         screen.addPreference(categoryDevelopment) //categoryDevelopment
-        screen.addPreference(preferenceShowDebugToasts)
 
+        screen.addPreference(preferenceShowDebugToasts)
+        screen.addPreference(preferenceOpenGithubRepo)
         preferenceScreen = screen
 
         PreferenceManager.getDefaultSharedPreferences(requireContext())

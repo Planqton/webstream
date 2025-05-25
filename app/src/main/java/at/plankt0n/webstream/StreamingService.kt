@@ -20,6 +20,7 @@ import androidx.media3.common.Timeline
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -92,7 +93,6 @@ class StreamingService : MediaSessionService() {
             .build().apply {
                 repeatMode = Player.REPEAT_MODE_ALL
                 addListener(playerListener)
-
             }
 
         setupPlaylist()
@@ -254,4 +254,6 @@ class StreamingService : MediaSessionService() {
     override fun onTaskRemoved(rootIntent: Intent?) {
         stopSelf()
     }
+
+
 }

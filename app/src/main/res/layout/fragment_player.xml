@@ -62,7 +62,7 @@
                 android:layout_marginStart="32dp"
                 android:layout_marginEnd="32dp"
                 android:scaleType="centerInside"
-                android:tint="@android:color/black"
+                app:tint="@android:color/black"
                 android:contentDescription="@string/play_pause" />
 
             <ImageButton
@@ -72,7 +72,7 @@
                 android:background="@drawable/ripple_circle"
                 android:src="@drawable/ic_button_forward"
                 android:scaleType="centerInside"
-                android:tint="@android:color/black"
+                app:tint="@android:color/black"
                 android:contentDescription="@string/next" />
         </LinearLayout>
 
@@ -120,11 +120,26 @@
                 android:background="@drawable/ripple_circle"
                 android:src="@drawable/ic_button_createlog"
                 android:scaleType="centerInside"
-                android:tint="@android:color/black"
+                app:tint="@android:color/black"
                 android:contentDescription="@string/manual_log" />
+
         </LinearLayout>
 
 
+
     </LinearLayout>
+
+    <!-- Neu: Element direkt über der Navbar -->
+    <TextView
+        android:id="@+id/text_bitrate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:text=""
+        android:textSize="12sp"
+        android:textColor="#000000"
+        android:gravity="end"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
