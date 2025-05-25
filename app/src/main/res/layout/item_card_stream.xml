@@ -19,8 +19,9 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:clipToOutline="true"
-            android:background="@drawable/rounded_background" />
+            android:clipToOutline="true" />
+         <!--   android:background="@drawable/rounded_background"-->
+
 
         <TextView
             android:id="@+id/card_title"
