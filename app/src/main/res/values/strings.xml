@@ -34,7 +34,7 @@
     <string name="pref_audiofocus_enabled_title">Audiofocus</string>
     <string name="pref_audiofocus_description">Sets the Audiofocus on the Service</string>
     <!-- AutoPlay and Close -->
-    <string name="pref_autoplay_and_close_title">Autoplays and Close</string>
+    <string name="pref_autoplay_and_close_title">Autoplay and Close</string>
     <string name="pref_autoplay_and_close_description">Autoplays the last played stream after first start of the appa and then minimize after delay</string>
     <string name="pref_autoplay_and_close_delay_title">Delay for Autoclose</string>
     <string name="pref_autoplay_and_close_delay_summary">Delay in seconds (0–30) from play stream to minimize the app</string>
@@ -72,6 +72,28 @@
     <string name="pref_info_toast_enabled_title">Info Toast</string>
     <string name="pref_info_toast_description">Show Toast when Webstreams wans to tell you an Info</string>
     <string name="info_toast_string">Info:</string>
+    <!-- Use LAST FM MediaInfo -->
+    <string name="pref_last_fm_media_info_title">Custom MetaInfo / Artwork</string>
+    <string name="pref_last_fm_media_info_description">Use Custom Mediainfo (Overwrite Launcher Artwork)</string>
+
+    <string name="pref_last_fm_api_key_title">Last FM Api Key</string>
+    <string name="pref_last_fm_api_key_summary">API Key is Needed</string>
+    <string name="pref_last_fm_api_key_dialogtitle">Enter Api Key:</string>
+    <!-- Autiplay -->
+    <string name="pref_autoplay_itle">Autoplay</string>
+    <string name="pref_autoplay_description">Autoplay when Player is Loading</string>
+
+    <!-- StreamService -->
+        <string name="streaming_service_notification_title">Streaming Service</string>
+        <string name="streaming_service_notification_text">Initializing...</string>
+        <string name="streaming_service_channel_name">Streaming Service Channel</string>
+        <string name="streaming_service_channel_description">Channel for the Streaming Service</string>
+        <string name="streaming_service_refresh_playlist_log">🔁 refreshPlaylist() executed via Save button!</string>
+        <string name="streaming_service_media_item_changed_log">🔁 MediaItem changed: Index = %1$d</string>
+        <string name="streaming_service_timeline_changed_log">📻 Timeline Changed</string>
+        <string name="streaming_service_unknown_stream">Unknown Stream</string>
+        <string name="streaming_service_error_message">Error playing %1$s: %2$s\n%3$s: %4$s</string>
+
 
     <!-- Category -->
     <string name="category_autostart">Autostart</string>
@@ -104,25 +126,37 @@
     <string name="hint_stream_url">Stream URL</string>
     <string name="hint_icon_url">Icon URL</string>
     <string name="button_search_logo">Logo suchen</string>
-
+    <string name="button_search_radio_station">Search in Radio Browser API</string>
+    <string name="search_radio_station">Search Radio Station</string>
+    <string name="search">Search</string>
+    <string name="hint_search_station">Enter station name…</string>
+    <string name="no_results_found">No results found.</string>
     <!-- Icon Search -->
     <string name="hint_enter_search_term">Suchbegriff eingeben…</string>
     <string name="button_search">Search</string>
     <string name="select_logo">Choose Logo</string>
     <string name="no_logos_found">No Logos Found</string>
     <string name="toast_input_searchtext">Enter Text to search for</string>
+    <!-- PreferencesHelper -->
+    <string name="log_saved_message">🔄 Log saved: %1$s</string>
 
     <!-- Player -->
     <string name="unknown_station">Unknown Station</string>
     <string name="now_playing_prefix">Now Playing: </string>
     <string name="title_prefix">Title: </string>
     <string name="artist_prefix">Artist: </string>
-
     <string name="play_pause">Play/Pause</string>
     <string name="previous">Back</string>
     <string name="next">Forward</string>
     <string name="title_label">Titel:</string>
     <string name="artist_label">Artist:</string>
+    <string name="placeholder_dash">–</string>
+    <string name="unknown_title">Unknown Title</string>
+    <string name="unknown_stream">Unknown Stream</string>
+    <string name="manual_log_suffix">(Manual log)</string>
+    <string name="playlist_snaphelper_triggered">✅ Playlist reloaded and SnapHelper triggered correctly!</string>
+
+
 
     <!-- Ping -->
     <string name="connectivity_check_url">https://clients3.google.com/generate_204</string>

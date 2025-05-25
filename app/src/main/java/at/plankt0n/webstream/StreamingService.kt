@@ -5,8 +5,11 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.MediaItem
@@ -21,6 +24,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import at.plankt0n.webstream.data.Stream
+import at.plankt0n.webstream.helper.IcyStreamReader
 import at.plankt0n.webstream.helper.PreferencesHelper
 import at.plankt0n.webstream.helper.ToastType
 import at.plankt0n.webstream.helper.UIHelper
@@ -32,7 +36,7 @@ class StreamingService : MediaSessionService() {
 
     private var streams: List<Stream> = emptyList()
     private var currentIndex = 0
-
+    private var icyStreamReader: IcyStreamReader? = null
 
     private var lastLoggedRawTitle: String? = null
 
@@ -50,51 +54,47 @@ class StreamingService : MediaSessionService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-
-    @androidx.media3.common.util.UnstableApi //Disable warning for unstab
+    @androidx.media3.common.util.UnstableApi
     override fun onCreate() {
         super.onCreate()
-       //Foreground Service
+
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Streaming Service")
-            .setContentText("Initialisiere...")
+            .setContentTitle(getString(R.string.streaming_service_notification_title))
+            .setContentText(getString(R.string.streaming_service_notification_text))
             .setSmallIcon(R.drawable.ic_radio)
             .build()
         startForeground(1, notification)
 
-        // Create Notification Channel for Android O and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Streaming Service Channel",
+                getString(R.string.streaming_service_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Channel for the Streaming Service"
+                description = getString(R.string.streaming_service_channel_description)
             }
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
         }
+
         currentIndex = PreferencesHelper.getLastPlayedStreamIndex(this)
 
-        // HTTP data source with 10s timeouts and support for cross-protocol redirects
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
             .setConnectTimeoutMs(10_000)
             .setReadTimeoutMs(10_000)
 
-        // Media source factory using the custom HTTP data source
         val mediaSourceFactory = DefaultMediaSourceFactory(this)
             .setDataSourceFactory(DefaultDataSource.Factory(this, httpDataSourceFactory))
 
-        // Create ExoPlayer instance
         player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(mediaSourceFactory)
             .build().apply {
                 repeatMode = Player.REPEAT_MODE_ALL
                 addListener(playerListener)
+
             }
 
-        //Setup the Playlist
         setupPlaylist()
 
         val sessionIntent = PendingIntent.getActivity(
@@ -108,14 +108,12 @@ class StreamingService : MediaSessionService() {
     }
 
     private fun setupPlaylist() {
-        //Load Streams from Preferences
         streams = PreferencesHelper.getStreams(this)
         if (streams.isEmpty()) {
             stopSelf()
             return
         }
 
-        //Create Media Items for the Playlist and set exta fpr ICONURL
         val mediaItems = streams.map {
             val extras = Bundle().apply {
                 putString("EXTRA_ICON_URL", it.iconUrl)
@@ -132,26 +130,23 @@ class StreamingService : MediaSessionService() {
                 .build()
         }
 
-        //Set the Playlist to the Player and prepare it for Playback
         player.setMediaItems(mediaItems, currentIndex, 0L)
         player.prepare()
+
     }
 
     private fun refreshPlaylist() {
-        // Prüfen, ob aktuell gespielt wird
         val wasPlaying = player.isPlaying
         if (wasPlaying) {
             player.pause()
         }
 
-        // ReLoad Streams from Preferences
         streams = PreferencesHelper.getStreams(this)
         if (streams.isEmpty()) {
             stopSelf()
             return
         }
 
-        // Create Media Items for the Playlist und set extra für ICONURL
         val mediaItems = streams.map {
             val extras = Bundle().apply {
                 putString("EXTRA_ICON_URL", it.iconUrl)
@@ -168,66 +163,74 @@ class StreamingService : MediaSessionService() {
                 .build()
         }
 
-        // Setze die Playlist und bereite sie vor
-        player.setMediaItems(mediaItems, currentIndex, 0L)
-        player.prepare()
 
-        // Wiedergabe fortsetzen, falls vorher aktiv
+
         if (wasPlaying) {
             player.play()
         }
+
+        player.setMediaItems(mediaItems, currentIndex, 0L)
+        player.prepare()
+
+        Log.d("StreamingService", getString(R.string.streaming_service_refresh_playlist_log))
+
     }
 
 
+
     private val playerListener = object : Player.Listener {
-        //listener for saving the last played stream Index
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             val index = player.currentMediaItemIndex
             if (index >= 0) {
                 currentIndex = index
                 PreferencesHelper.saveLastPlayedStreamIndex(this@StreamingService, index)
-                Log.d("StreamingService", "🔁 MediaItem gewechselt: Index = $index")
+                Log.d("StreamingService", getString(R.string.streaming_service_media_item_changed_log, index))
+
+
             }
+
+
         }
-        //listener for changes in the playlist
+
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
             if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
-                Log.d("StreamingService", "📻 Playlist wurde aktualisiert.")
+                Log.d("StreamingService", getString(R.string.streaming_service_timeline_changed_log))
+
             }
         }
-        //Error handling
+
         override fun onPlayerError(error: PlaybackException) {
             val stream = streams.getOrNull(currentIndex)
-            val name = stream?.name ?: "Unbekannter Stream"
-
-            val errorMessage = "Fehler beim Abspielen von $name: ${error.message}\n${error.cause?.javaClass?.simpleName}: ${error.cause?.message}"
-
+            val name = stream?.name ?: getString(R.string.streaming_service_unknown_stream)
+            val errorMessage = getString(
+                R.string.streaming_service_error_message,
+                name,
+                error.message,
+                error.cause?.javaClass?.simpleName ?: "Unknown",
+                error.cause?.message ?: "Unknown"
+            )
             UIHelper.showToast(
                 this@StreamingService,
                 errorMessage,
                 type = ToastType.ERROR
             )
-
             player.pause()
         }
 
 
-        //Tracklogging Only when Setting is True
+
         override fun onMediaMetadataChanged(metadata: MediaMetadata) {
             val rawTitle = metadata.title?.toString()?.trim().orEmpty()
             val streamName = streams.getOrNull(currentIndex)?.name ?: "?"
 
             if (rawTitle.isNotEmpty() && rawTitle != lastLoggedRawTitle) {
                 lastLoggedRawTitle = rawTitle
-
                 if (PreferencesHelper.isAutoLogEnabled(this@StreamingService)) {
                     PreferencesHelper.logTrack(this@StreamingService, rawTitle, streamName)
                 }
             }
-
         }
 
-        //Player State Change
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
             if (!playWhenReady) {
                 player.pause()
@@ -235,12 +238,14 @@ class StreamingService : MediaSessionService() {
         }
     }
 
-
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession {
         return mediaSession
     }
 
     override fun onDestroy() {
+        icyStreamReader?.stop()
+        icyStreamReader = null
+
         mediaSession.release()
         player.release()
         super.onDestroy()

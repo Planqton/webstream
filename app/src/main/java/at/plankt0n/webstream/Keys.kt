@@ -15,9 +15,11 @@ object Keys {
     const val PREF_SHOW_INFO_TOAST = "info_toast_enabled"
     const val PREF_AUDIOFOCUS_ENABLED = "audiofocus_enabled"
     const val PREF_ICON_SCALE_FACTOR = "icon_scale_factor"
-
+    const val PREF_USE_LAST_FM_MEDIA_INFO = "use_custom_media_info" // Sets no Artwork to let the Launchner handle the Artwork
+    const val Pref_LAST_FM_API_KEY = "last_fm_api_key" //Last.fm API Key
     const val PREF_AUTOPLAY_AND_CLOSE = "autoplay_and_close_enabled" //Autoplay
-    const val PREF_AUTOPLAY_AND_CLOSE_DELAY = "autoplay_and_clsoe_delay"
+    const val PREF_AUTOPLAY_AND_CLOSE_DELAY = "autoplay_and_close_delay"
+    const val PREF_AUTOPLAY = "autoplay_enabled"
     //metaLog
     const val PREF_AUTOLOG_ENABLED = "autolog_enabled"
     const val PREF_MAX_LOG_AGE = "max_log_age"

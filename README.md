@@ -40,6 +40,13 @@
 
 ---
 
+## 🖥️ Designed for Larger Screens
+
+This app is intended for **tablets, car radios (Android Auto devices), or other devices with larger displays**.  
+It is **not intended for normal smartphones**.  
+Requires at least **API 29 (Android 10)**.
+
+---
 ## Preview
 
 Some Screenshots:

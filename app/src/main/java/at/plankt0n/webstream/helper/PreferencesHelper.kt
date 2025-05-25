@@ -2,13 +2,19 @@ package at.plankt0n.webstream.helper
 
 import android.content.Context
 import android.util.Log
+import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import at.plankt0n.webstream.Keys
+import at.plankt0n.webstream.R
 import at.plankt0n.webstream.data.Stream
 import at.plankt0n.webstream.data.TrackLogEntry
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
+/**
+ * Helper object to manage SharedPreferences-related logic for the app.
+ * Provides convenience functions to read and write common app settings.
+ */
 object PreferencesHelper {
 
     fun isAutostartOnBootEnabled(context: Context): Boolean {
@@ -16,17 +22,24 @@ object PreferencesHelper {
             .getBoolean(Keys.PREF_AUTOSTART_ON_BOOT_ENABLED, false)
     }
 
-    fun getAutoplayandCloseDelay(context: Context): Int {
-        return PreferenceManager.getDefaultSharedPreferences(context)
-            .getInt(Keys.PREF_AUTOPLAY_AND_CLOSE_DELAY, 10)
-    }
     fun getAutostartDelay(context: Context): Int {
         return PreferenceManager.getDefaultSharedPreferences(context)
             .getInt(Keys.PREF_AUTOSTART_DELAY, 0)
     }
+
+    fun getAutoplayandCloseDelay(context: Context): Int {
+        return PreferenceManager.getDefaultSharedPreferences(context)
+            .getInt(Keys.PREF_AUTOPLAY_AND_CLOSE_DELAY, 10)
+    }
+
     fun isAutoLogEnabled(context: Context): Boolean {
         return PreferenceManager.getDefaultSharedPreferences(context)
             .getBoolean(Keys.PREF_AUTOLOG_ENABLED, true)
+    }
+
+    fun isAutoPlayEnabled(context: Context): Boolean {
+        return PreferenceManager.getDefaultSharedPreferences(context)
+            .getBoolean(Keys.PREF_AUTOPLAY, true)
     }
 
     fun getIconScaleFactor(context: Context): Float {
@@ -39,6 +52,7 @@ object PreferencesHelper {
         return PreferenceManager.getDefaultSharedPreferences(context)
             .getBoolean(Keys.PREF_OVERWRITE_LABEL, false)
     }
+
     fun isAudiofocusEnabled(context: Context): Boolean {
         return PreferenceManager.getDefaultSharedPreferences(context)
             .getBoolean(Keys.PREF_AUDIOFOCUS_ENABLED, true)
@@ -64,12 +78,20 @@ object PreferencesHelper {
             .getBoolean(Keys.PREF_SHOW_ERROR_TOAST, true)
     }
 
+    fun useLastFMMediaInfo(context: Context): Boolean {
+        return PreferenceManager.getDefaultSharedPreferences(context)
+            .getBoolean(Keys.PREF_USE_LAST_FM_MEDIA_INFO, true)
+    }
+
+    fun getLastFMApiKey(context: Context): String? {
+        return PreferenceManager.getDefaultSharedPreferences(context)
+            .getString(Keys.Pref_LAST_FM_API_KEY, null)
+    }
+
     fun isInfoToastEnabled(context: Context): Boolean {
         return PreferenceManager.getDefaultSharedPreferences(context)
             .getBoolean(Keys.PREF_SHOW_INFO_TOAST, true)
     }
-
-
 
     fun getStreams(context: Context): List<Stream> {
         val json = PreferenceManager.getDefaultSharedPreferences(context)
@@ -83,41 +105,37 @@ object PreferencesHelper {
         }
     }
 
-
-
     fun saveStreams(context: Context, streams: List<Stream>) {
         val json = Gson().toJson(streams)
-        PreferenceManager.getDefaultSharedPreferences(context).edit()
-            .putString(Keys.PREF_STREAMS, json)
-            .apply()
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        prefs.edit {
+            putString(Keys.PREF_STREAMS, json)
+        }
     }
 
-    // Letzten abgespielten Stream speichern
     fun saveLastPlayedStreamUrl(context: Context, url: String) {
-        PreferenceManager.getDefaultSharedPreferences(context).edit()
-            .putString(Keys.PREF_LAST_PLAYED_STREAM_URL, url)
-            .apply()
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        prefs.edit {
+            putString(Keys.PREF_LAST_PLAYED_STREAM_URL, url)
+        }
     }
 
-    // Letzten abgespielten Stream lesen
     fun getLastPlayedStreamUrl(context: Context): String? {
         return PreferenceManager.getDefaultSharedPreferences(context)
             .getString(Keys.PREF_LAST_PLAYED_STREAM_URL, null)
     }
 
-    // Letzten abgespielten Stream-Index speichern
     fun saveLastPlayedStreamIndex(context: Context, index: Int) {
-        PreferenceManager.getDefaultSharedPreferences(context).edit()
-            .putInt(Keys.PREF_LAST_PLAYED_STREAM_INDEX, index)
-            .apply()
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        prefs.edit {
+            putInt(Keys.PREF_LAST_PLAYED_STREAM_INDEX, index)
+        }
     }
 
-    // Letzten abgespielten Stream-Index abrufen
     fun getLastPlayedStreamIndex(context: Context): Int {
         return PreferenceManager.getDefaultSharedPreferences(context)
-            .getInt(Keys.PREF_LAST_PLAYED_STREAM_INDEX, 0) // 0 als Fallback
+            .getInt(Keys.PREF_LAST_PLAYED_STREAM_INDEX, 0)
     }
-
 
     fun isAutoplayAndCloseEnabled(context: Context): Boolean {
         return PreferenceManager.getDefaultSharedPreferences(context)
@@ -125,45 +143,49 @@ object PreferencesHelper {
     }
 
     fun setAutoplayAndCloseEnabled(context: Context, enabled: Boolean) {
-        PreferenceManager.getDefaultSharedPreferences(context).edit()
-            .putBoolean(Keys.PREF_AUTOPLAY_AND_CLOSE, enabled)
-            .apply()
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        prefs.edit {
+            putBoolean(Keys.PREF_AUTOPLAY_AND_CLOSE, enabled)
+        }
     }
 
-
+    /**
+     * Logs a played track (with timestamp, title, and stream name) into a persistent list.
+     * Cleans up logs older than [maxDays] and ensures max size is not exceeded.
+     */
     fun logTrack(context: Context, rawTitle: String, streamName: String = "?") {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val gson = Gson()
 
-        // Bestehende Logs laden
+        // Load existing logs
         val logsJson = prefs.getString(Keys.KEY_TRACK_LOG, "[]")
         val type = object : TypeToken<MutableList<TrackLogEntry>>() {}.type
         val logs: MutableList<TrackLogEntry> = gson.fromJson(logsJson, type) ?: mutableListOf()
 
-        // Bereinigen: Alte löschen
-        val maxDays = prefs.getInt(Keys.PREF_MAX_LOG_AGE, 10) // Standard 10 Tage
+        // Remove old entries
+        val maxDays = prefs.getInt(Keys.PREF_MAX_LOG_AGE, 10)
         if (maxDays > 0) {
             val cutoff = System.currentTimeMillis() - (maxDays * 24L * 60 * 60 * 1000)
             logs.removeAll { it.timestamp < cutoff }
         }
 
-        // Neuen Eintrag hinzufügen
+        // Add the new entry
         logs.add(TrackLogEntry(System.currentTimeMillis(), rawTitle, streamName))
 
-        // Speichern
-        prefs.edit().putString(Keys.KEY_TRACK_LOG, gson.toJson(logs)).apply()
-        // Optional: Max-Einträge-Limit
+        // Save updated logs
+        prefs.edit {
+            putString(Keys.KEY_TRACK_LOG, gson.toJson(logs))
+        }
+
+        // Enforce maximum log entries limit
         val maxEntries = 8000
         if (logs.size > maxEntries) {
             logs.subList(0, logs.size - maxEntries).clear()
         }
 
-        Log.d("StreamService", "🔄 Log gespeichert: $rawTitle")
+        Log.d("StreamService", context.getString(R.string.log_saved_message, rawTitle))
+
     }
-
-
-
-
 
     fun getTrackLogs(context: Context): List<TrackLogEntry> {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -172,12 +194,11 @@ object PreferencesHelper {
         val type = object : TypeToken<List<TrackLogEntry>>() {}.type
         return gson.fromJson(logsJson, type) ?: emptyList()
     }
+
     fun clearTrackLogs(context: Context) {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        prefs.edit().remove(Keys.KEY_TRACK_LOG).apply()
+        prefs.edit {
+            remove(Keys.KEY_TRACK_LOG)
+        }
     }
-
-
-
-
 }

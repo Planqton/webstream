@@ -12,6 +12,14 @@
         android:paddingTop="56dp"
         android:paddingBottom="16dp" />
 
+    <TextView
+        android:id="@+id/rowNumber"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="@android:color/black"
+        android:textSize="16sp" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -40,6 +40,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/button_search_logo" />
+        <Button
+            android:id="@+id/buttonSearchRadioStation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_search_radio_station" />
 
     </LinearLayout>
 </ScrollView>

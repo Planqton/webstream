@@ -2,7 +2,6 @@ package at.plankt0n.webstream
 
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
 import android.widget.Switch
 import android.widget.TextView
@@ -16,7 +15,7 @@ import at.plankt0n.webstream.ui.PlayerFragment
 import at.plankt0n.webstream.ui.SettingsFragment
 import at.plankt0n.webstream.ui.StreamsFragment
 import at.plankt0n.webstream.ui.TrackLogFragment
-import at.plankt0n.webstream.Keys
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -58,8 +57,11 @@ class MainActivity : AppCompatActivity() {
         val typedArray = theme.obtainStyledAttributes(
             intArrayOf(R.attr.bottomNavActiveColor, R.attr.bottomNavInactiveColor)
         )
-        val activeColor = typedArray.getColor(0, Color.GREEN)
-        val inactiveColor = typedArray.getColor(1, Color.GRAY)
+
+        val activeColor = ContextCompat.getColor(this, R.color.active_color)
+        val inactiveColor = ContextCompat.getColor(this, R.color.inactive_color)
+
+
         typedArray.recycle()
 
         val states = arrayOf(
@@ -87,7 +89,10 @@ class MainActivity : AppCompatActivity() {
             playerFragment = supportFragmentManager.findFragmentByTag("PLAYER") as PlayerFragment
             streamsFragment = supportFragmentManager.findFragmentByTag("STREAMS") as StreamsFragment
             settingsFragment = supportFragmentManager.findFragmentByTag("SETTINGS") as SettingsFragment
-            trackLogFragment = supportFragmentManager.findFragmentByTag("HISTORY") as TrackLogFragment
+
+            // KORRIGIERT: TrackLogFragment nur casten, wenn nicht null
+            trackLogFragment = supportFragmentManager.findFragmentByTag("TRACKLOG") as? TrackLogFragment
+                ?: TrackLogFragment() // Fallback, falls nicht gefunden
 
             val activeFragment = supportFragmentManager.fragments.find { it.isVisible }
             activeTag = activeFragment?.tag ?: "PLAYER"

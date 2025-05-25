@@ -5,6 +5,16 @@
     android:orientation="horizontal"
     android:padding="16dp">
 
+    <!-- Zeilennummer -->
+    <TextView
+        android:id="@+id/rowNumber"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="1"
+        android:textSize="16sp"
+        android:textColor="@android:color/black" />
+
     <!-- ImageView für das Stream-Icon -->
     <ImageView
         android:id="@+id/streamIcon"

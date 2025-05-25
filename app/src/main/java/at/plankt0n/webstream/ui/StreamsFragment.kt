@@ -92,6 +92,8 @@ class StreamsFragment : Fragment() {
             override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
                 super.clearView(recyclerView, viewHolder)
                 viewHolder.itemView.setBackgroundColor(Color.TRANSPARENT)
+
+                streamAdapter.notifyDataSetChanged()
             }
         }
 
@@ -104,6 +106,7 @@ class StreamsFragment : Fragment() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
                 streamAdapter.removeItem(position)
+                streamAdapter.notifyDataSetChanged()
             }
 
             override fun onChildDraw(
@@ -157,6 +160,7 @@ class StreamsFragment : Fragment() {
         val iconUrlEditText = dialogView.findViewById<EditText>(R.id.editIconURL)
         val iconPreview = dialogView.findViewById<ImageView>(R.id.iconPreview)
         val searchLogoButton = dialogView.findViewById<Button>(R.id.buttonSearchLogo)
+        val searchRadioStationButton = dialogView.findViewById<Button>(R.id.buttonSearchRadioStation)
 
         if (stream != null) {
             streamNameEditText.setText(stream.name)
@@ -181,6 +185,7 @@ class StreamsFragment : Fragment() {
                     updatedList[position] = newStream
                 }
                 streamAdapter.updateAll(updatedList)
+                streamAdapter.notifyDataSetChanged()
             }
             .setNegativeButton(getString(R.string.cancel), null)
             .apply {
@@ -189,6 +194,7 @@ class StreamsFragment : Fragment() {
                         val updatedList = streamAdapter.getItems().toMutableList()
                         updatedList.removeAt(position!!)
                         streamAdapter.updateAll(updatedList)
+                        streamAdapter.notifyDataSetChanged()
                     }
                 }
             }
@@ -207,7 +213,83 @@ class StreamsFragment : Fragment() {
                 Glide.with(requireContext()).load(selectedIconUrl).into(iconPreview)
             }
         }
+        // Füge dann den Listener direkt darunter hinzu:
+        searchRadioStationButton.setOnClickListener {
+            showRadioSearchDialog { selectedStream ->
+                streamNameEditText.setText(selectedStream.name)
+                streamUrlEditText.setText(selectedStream.url)
+                iconUrlEditText.setText(selectedStream.iconUrl)
+                Glide.with(requireContext()).load(selectedStream.iconUrl).into(iconPreview)
+            }
+        }
+
     }
+
+    private fun showRadioSearchDialog(onSelected: (Stream) -> Unit) {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_radio_search, null)
+        val searchInput = dialogView.findViewById<EditText>(R.id.editSearchInput)
+        val searchButton = dialogView.findViewById<Button>(R.id.buttonStartSearch)
+        val progress = dialogView.findViewById<ProgressBar>(R.id.loadingProgress)
+        val listView = dialogView.findViewById<ListView>(R.id.listView)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.search_radio_station))
+            .setView(dialogView)
+            .setNegativeButton(getString(R.string.cancel), null)
+            .create()
+
+        dialog.show()
+
+        searchButton.setOnClickListener {
+            val query = searchInput.text.toString().trim()
+            if (query.isEmpty()) {
+                UIHelper.showToast(requireContext(), getString(R.string.toast_input_searchtext), 10, ToastType.INFO)
+                return@setOnClickListener
+            }
+
+            progress.visibility = View.VISIBLE
+            listView.visibility = View.GONE
+
+            searchRadioStations(requireContext(), query) { resultList ->
+                requireActivity().runOnUiThread {
+                    progress.visibility = View.GONE
+                    if (resultList.isNotEmpty()) {
+                        listView.visibility = View.VISIBLE
+                        val adapter = object : BaseAdapter() {
+                            override fun getCount() = resultList.size
+                            override fun getItem(position: Int) = resultList[position]
+                            override fun getItemId(position: Int) = position.toLong()
+                            override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+                                val itemView = layoutInflater.inflate(R.layout.item_radio_browser_radio_station, parent, false)
+                                val imageView = itemView.findViewById<ImageView>(R.id.stationLogo)
+                                val textView = itemView.findViewById<TextView>(R.id.stationName)
+
+                                textView.text = resultList[position].name
+
+                                Glide.with(requireContext())
+                                    .load(resultList[position].iconUrl)
+                                    .placeholder(R.drawable.default_station)
+                                    .centerCrop()
+                                    .override(64, 64) // Einheitliche Größe
+                                    .into(imageView)
+
+                                return itemView
+                            }
+                        }
+                        listView.adapter = adapter
+                        listView.setOnItemClickListener { _, _, position, _ ->
+                            onSelected(resultList[position])
+                            dialog.dismiss()
+                        }
+                    } else {
+                        UIHelper.showToast(requireContext(), getString(R.string.no_results_found), 10, ToastType.INFO)
+                    }
+                }
+            }
+        }
+    }
+
+
 
     private fun showLogoSearchDialog(onSelected: (String) -> Unit) {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_icon_search, null)
@@ -325,6 +407,40 @@ class StreamsFragment : Fragment() {
         }
     }
 
+    private fun searchRadioStations(context: Context, searchTerm: String, onResult: (List<Stream>) -> Unit) {
+        val client = OkHttpClient()
+        val url = "https://de1.api.radio-browser.info/json/stations/search?name=" + URLEncoder.encode(searchTerm, "UTF-8")
+        val request = Request.Builder().url(url).build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+                onResult(emptyList())
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.body?.string()?.let { json ->
+                    try {
+                        val stations = JSONArray(json)
+                        val resultList = mutableListOf<Stream>()
+                        for (i in 0 until stations.length()) {
+                            val station = stations.getJSONObject(i)
+                            val name = station.optString("name")
+                            val urlResolved = station.optString("url_resolved")
+                            val favicon = station.optString("favicon")
+                            if (name.isNotEmpty() && urlResolved.isNotEmpty()) {
+                                resultList.add(Stream(name, urlResolved, favicon))
+                            }
+                        }
+                        onResult(resultList)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        onResult(emptyList())
+                    }
+                } ?: onResult(emptyList())
+            }
+        })
+    }
 
     private fun importStreamsFromUri(uri: Uri) {
         try {
@@ -345,6 +461,7 @@ class StreamsFragment : Fragment() {
                 }
 
                 streamAdapter.updateAll(currentStreams)
+                streamAdapter.notifyDataSetChanged()
                 PreferencesHelper.saveStreams(requireContext(), currentStreams)
                 Toast.makeText(requireContext(), getString(R.string.import_success), Toast.LENGTH_SHORT).show()
             } else {

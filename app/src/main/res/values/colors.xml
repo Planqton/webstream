@@ -14,5 +14,8 @@
     <color name="green">#4CAF50</color>
     <color name="red">#F44336</color>
     <color name="drag_highlight">#FFDDDDDD</color>
+    <!-- Main Activity -->
+    <color name="active_color">#00FF00</color>
+    <color name="inactive_color">#808080</color>
 
 </resources>

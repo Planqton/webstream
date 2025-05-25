@@ -16,6 +16,7 @@ class StreamAdapter(
 ) : RecyclerView.Adapter<StreamAdapter.ViewHolder>() {
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val rowNumber: TextView = view.findViewById(R.id.rowNumber)
         val icon: ImageView = view.findViewById(R.id.streamIcon)
         val name: TextView = view.findViewById(R.id.streamName)
         val url: TextView = view.findViewById(R.id.streamURL)
@@ -37,6 +38,7 @@ class StreamAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val stream = streams[position]
+        holder.rowNumber.text = (position + 1).toString() // 1-basiert
         holder.name.text = stream.name
         holder.url.text = stream.url
         Glide.with(holder.icon.context)

@@ -63,7 +63,24 @@ class SettingsFragment : PreferenceFragmentCompat() {
             icon = ContextCompat.getDrawable(context, R.drawable.ic_autostart)
         }
 
-        val preferenceAutoPlayandCloseEnabled = SwitchPreferenceCompat(context).apply { //Autostart Player
+        val preferenceLastFMMediaInfo = SwitchPreferenceCompat(context).apply { //Audiofocus
+            key = Keys.PREF_USE_LAST_FM_MEDIA_INFO
+            title = getString(R.string.pref_last_fm_media_info_title)
+            summary = getString(R.string.pref_last_fm_media_info_description)
+            setDefaultValue(false)
+            icon = ContextCompat.getDrawable(context, R.drawable.ic_mediainfo)
+        }
+
+        val preferenceLastFMApiKey = EditTextPreference(context).apply {
+            key = Keys.Pref_LAST_FM_API_KEY
+            title = getString(R.string.pref_last_fm_api_key_title)
+            summary = getString(R.string.pref_last_fm_api_key_summary)
+            dialogTitle = getString(R.string.pref_last_fm_api_key_dialogtitle)
+            setDefaultValue("")
+            icon = ContextCompat.getDrawable(context, R.drawable.ic_key) // optional, falls vorhanden
+        }
+
+        val preferenceAutoPlayandCloseEnabled = SwitchPreferenceCompat(context).apply { //Autoplay and Close Player
             key = Keys.PREF_AUTOPLAY_AND_CLOSE
             title = getString(R.string.pref_autoplay_and_close_title)
             summary = getString(R.string.pref_autoplay_and_close_description)
@@ -71,7 +88,15 @@ class SettingsFragment : PreferenceFragmentCompat() {
             icon = ContextCompat.getDrawable(context, R.drawable.ic_autostart)
         }
 
-        val preferenceAutoPlayandCloseDelay = SeekBarPreference(context).apply { //Autostart after Boot delay
+        val preferenceAutoPlayEnabled = SwitchPreferenceCompat(context).apply { //Autoplay and Close Player
+            key = Keys.PREF_AUTOPLAY
+            title = getString(R.string.pref_autoplay_itle)
+            summary = getString(R.string.pref_autoplay_description)
+            setDefaultValue(false)
+            icon = ContextCompat.getDrawable(context, R.drawable.ic_autostart)
+        }
+
+        val preferenceAutoPlayandCloseDelay = SeekBarPreference(context).apply { //If Autoplay and Close Player is enabled, this is the delay before closing the player
             key = Keys.PREF_AUTOPLAY_AND_CLOSE_DELAY
             title = getString(R.string.pref_autoplay_and_close_delay_title)
             summary = getString(R.string.pref_autoplay_and_close_delay_summary)
@@ -87,7 +112,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             title = getString(R.string.pref_autostart_enabled_title)
             summary = getString(R.string.pref_autostart_description)
             setDefaultValue(false)
-            icon = ContextCompat.getDrawable(context, R.drawable.ic_autostart)
+            icon = ContextCompat.getDrawable(context, R.drawable.ic_mediainfo)
 
             setOnPreferenceChangeListener { _, newValue ->
                 if (newValue == true) {
@@ -194,13 +219,22 @@ class SettingsFragment : PreferenceFragmentCompat() {
         screen.addPreference(preferenceAudioFocusEnabled)
         //screen.addPreference(preferenceAutostartOnBootEnable)
         //screen.addPreference(preferenceAutostartDelay)
+        screen.addPreference(preferenceAutoPlayEnabled)
         screen.addPreference(preferenceAutoPlayandCloseEnabled)
         screen.addPreference(preferenceAutoPlayandCloseDelay)
+
         screen.addPreference(categoryLogMetaInfo) //categoryLogMetaInfo
         screen.addPreference(preferenceAutoLogEnabled)
         screen.addPreference(preferenceMaxLogAge)
 
         screen.addPreference(categoryDisplay)  //categoryDisplay
+
+
+        //Class for LAST.FM is working but not implemented in StreamingService.kt yet because there is no option in media3 to update Metainfo on the fly
+        //so it only uses this for the ai not for the Mediasession
+        screen.addPreference(preferenceLastFMMediaInfo)
+        screen.addPreference(preferenceLastFMApiKey)
+
         screen.addPreference(preferenceIconScaleFactor)
         screen.addPreference(preferenceShowInfoToast)
         screen.addPreference(preferenceShowErrorToast)
